@@ -186,7 +186,9 @@ class NexmoMessage
             $response_obj->cost = $total_cost = 0;
             if (is_array($response_obj->messages)) {
                 foreach ($response_obj->messages as $msg) {
-                    $total_cost = $total_cost + (float) $msg->messageprice;
+                    if (property_exists($msg, "messageprice")) {
+                        $total_cost = $total_cost + (float)$msg->messageprice;
+                    }
                 }
                 $response_obj->cost = $total_cost;
             }
@@ -417,8 +419,14 @@ class NexmoMessage
      * If $unicode is not provided we will try to detect the
      * message type. Otherwise set to TRUE if you require
      * unicode characters.
+     *
+     * @param $to
+     * @param $from
+     * @param $message
+     * @param null $unicode
+     * @param array $options
      */
-    function sendText($to, $from, $message, $unicode = null)
+    function sendText($to, $from, $message, $unicode = null, $options = array())
     {
         // Making sure strings are UTF-8 encoded
         if ( ! is_numeric($from) && ! mb_check_encoding($from, 'UTF-8')) {
@@ -453,6 +461,11 @@ class NexmoMessage
             'text' => $message,
             'type' => $containsUnicode ? 'unicode' : 'text'
         );
+
+        // Insert extra options
+        foreach($options as $option => $value) {
+            $post[$option] = $value;
+        }
 
         return $this->sendRequest($post);
     }
